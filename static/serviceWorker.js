@@ -1,4 +1,4 @@
-const version = '0.0.8';
+const version = '0.0.12';
 let precachename = 'gbfraiders-precache-' + version;
 let dynamicname = 'gbfraiders-dynamic-' + version;
 let precachedResourcesAsDependency = [
@@ -33,14 +33,13 @@ self.addEventListener( 'install', function ( event ) {
 			return cache.addAll( precachedResourcesAsDependency );
 		} )
 	);
-	console.log( 'ServiceWorker finished installing.' )
+	console.log( `ServiceWorker ${version} finished installing.` );
 } );
 
 self.addEventListener( 'fetch', function ( event ) {
 	let request = event.request.clone();
 	let requestURL = new URL( event.request.url );
-	console.log( "Service Worker - fetching request: " + requestURL.href );
-	console.dir( requestURL );
+	console.log( "Service Worker - fetching request: " + requestURL.href, requestURL );
 	if ( requestURL.pathname == "/socket.io/" ) {
 		event.respondWith(
 			NetworkOnly( request )
@@ -53,6 +52,8 @@ self.addEventListener( 'fetch', function ( event ) {
 		event.respondWith(
 			NetworkFallingBackToCache( '/' )
 		);
+	} else if ( requestURL.protocol == "chrome-extension:" ) {
+		return;
 	} else {
 		event.respondWith(
 			CacheFallingBackToNetwork( request )
@@ -121,5 +122,5 @@ self.addEventListener( 'activate', function ( event ) {
 			);
 		} )
 	);
-	console.log( 'ServiceWorker finished activating.' )
+	console.log( `ServiceWorker ${version} finished activating.` );
 } );

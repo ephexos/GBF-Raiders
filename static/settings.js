@@ -124,32 +124,42 @@ function LoadSavedSettings() {
 		console.log( "Found settings in localstorage." );
 		try {
 			var tempSettings = JSON.parse( localStorage.getItem( "savedSettings" ) );
+			if ( tempSettings.version === settings.version ) {
+				console.log( "Loaded version matches current version." );
+				settings.newsSeen = tempSettings.newsSeen;
+			} else {
+				console.log( "Loaded version does not match current version." );
+				settings.newsSeen = false;
+			}
+			try {
+				Object.assign( settings.notification, tempSettings.notification );
+				Object.assign( settings.layout, tempSettings.layout );
+				settings.viramateID = tempSettings.viramateID;
+				settings.disableJoined = tempSettings.disableJoined;
+				settings.disablePopups = tempSettings.disablePopups;
+				settings.strikeTime = tempSettings.strikeTime;
+				console.log( "Assigned saved settings to current settings." );
+			} catch ( error ) {
+				console.log( "Error assigning saved settings to current settings: " + error );
+			}
 		} catch ( error ) {
 			console.log( "Error parsing settings from localstorage: " + error );
 		}
-		if ( tempSettings.version === settings.version ) {
-			console.log( "Loaded version matches current version." );
-			settings.newsSeen = tempSettings.newsSeen;
-		} else {
-			console.log( "Loaded version does not match current version." );
-			settings.newsSeen = false;
-		}
-		try {
-			Object.assign( settings.notification, tempSettings.notification );
-			Object.assign( settings.layout, tempSettings.layout );
-		} catch ( error ) {
-			console.log( "Error assigning saved settings to current settings: " + error );
-		}
-		settings.viramateID = tempSettings.viramateID;
+
 		document.getElementById( "viramate-id-input" ).value = settings.viramateID;
 		if ( document.getElementById( "viramate-api" ) !== null ) {
 			document.getElementById( "viramate-api" ).src = "chrome-extension://" + settings.viramateID + "/content/api.html";
 		}
-		settings.strikeTime = tempSettings.strikeTime;
 		document.getElementById( "time-picker" ).value = settings.strikeTime;
 		SetTime();
-		if ( !settings.newsSeen ) {
-			document.getElementById( "news-message" ).classList.remove( "hidden" );
+		if ( settings.disableJoined ) {
+			document.getElementById( "join-disable-input" ).checked = true;
+		}
+		if ( settings.disablePopups ) {
+			document.getElementById( "popup-disable-input" ).checked = true;
+		}
+		if ( settings.newsSeen ) {
+			document.getElementById( "news-message" ).classList.add( "hidden" );
 		}
 		if ( settings.notification.desktopNotifOn ) {
 			document.getElementById( "enable-notif" ).innerHTML = 'Disable Desktop Notifications<i class="right remove circle icon"></i>';
@@ -207,11 +217,12 @@ function LoadSavedSettings() {
 				console.log( "Error assigning saved individual settings to current individual settings: " + error );
 			}
 		}
-		SetupTable();
 	}
+	SetupTable();
 }
 
 function SetupControls() {
+	console.log( "Setting up controls..." );
 	try {
 		var clipboard = new Clipboard( '.copy-div', {
 			text: function ( trigger ) {
@@ -235,6 +246,33 @@ function SetupControls() {
 				localStorage.setItem( "savedSettings", JSON.stringify( settings ) );
 			}
 		} );
+
+		$( "#filter-dropdown" ).dropdown( {
+			onChange: function ( value, text, $selectedItem ) {
+				let filteredRaids = GetFilteredRaids();
+				$( '.ui.search' ).search( 'clear cache' );
+				$( '.ui.search' ).search( 'setting', 'source', filteredRaids );
+			}
+		} );
+
+		document.getElementById( "join-disable-input" ).addEventListener( 'change', function ( evt ) {
+			if ( document.getElementById( "join-disable-input" ).checked ) {
+				settings.disableJoined = true;
+			} else {
+				settings.disableJoined = false;
+			}
+			localStorage.setItem( "savedSettings", JSON.stringify( settings ) );
+		} );
+
+		document.getElementById( "popup-disable-input" ).addEventListener( 'change', function ( evt ) {
+			if ( document.getElementById( "popup-disable-input" ).checked ) {
+				settings.disablePopups = true;
+			} else {
+				settings.disablePopups = false;
+			}
+			localStorage.setItem( "savedSettings", JSON.stringify( settings ) );
+		} );
+
 		document.getElementById( "time-picker" ).addEventListener( 'input', function ( evt ) {
 			settings.strikeTime = evt.target.value;
 			localStorage.setItem( "savedSettings", JSON.stringify( settings ) );
@@ -303,6 +341,7 @@ function SetupControls() {
 			localStorage.setItem( "savedSettings", JSON.stringify( settings ) );
 			if ( document.getElementById( "viramate-api" ) !== null ) {
 				document.getElementById( "viramate-api" ).src = "chrome-extension://" + settings.viramateID + "/content/api.html";
+				document.getElementById( "viramate-api" ).contentWindow.console.log = function () {};
 			}
 		} );
 		document.getElementById( "sound-volume-slider" ).addEventListener( "input", function ( event ) {
@@ -529,27 +568,27 @@ function SetupControls() {
 
 		$( '.ui.search' )
 			.search( {
-				source: raidConfigs,
+				source: GetFilteredRaids(),
 				searchFields: [
 					'english',
 					'japanese'
 				],
-				searchFullText: true,
+				fullTextSearch: true,
 				fields: {
 					title: 'english',
 					description: 'element'
 				},
+				cache: false,
 				maxResults: 10,
 				onSelect: function ( result, response ) {
 					console.log( "Adding selected raid..." );
 					try {
 						AddSelectedRaid( result.room );
+						document.getElementById( "search-input" ).value = "";
 					} catch ( error ) {
 						console.log( "Error adding raid to selected raids: " + error );
 					}
-					setTimeout( function () {
-						document.getElementById( "searcher" ).value = "";
-					}, 50 );
+					return false;
 				},
 				showNoResults: true
 			} );

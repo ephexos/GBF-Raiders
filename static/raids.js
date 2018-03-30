@@ -343,46 +343,65 @@ function CreateVerticalFullRaidRow( data ) {
 }
 
 function UpdateRaidRow( data ) {
-	if ( settings.debugLevel > 1 ) {
-		console.log( "Updating raid row for data: " );
-		console.dir( data );
-	}
-	if ( raids.length > settings.layout.raidMaxResults ) {
-		console.log( 'Too many raids (' + raids.length + ') for raidMaxResults: ' + settings.layout.raidMaxResults );
-		try {
-			var raidDIV = document.getElementById( raids[ 0 ].id );
-			if ( settings.layout.orientation === "horizontal" ) {
-				document.getElementById( "table-body" ).removeChild( raidDIV );
-			} else {
-				document.getElementById( raids[ 0 ].room + "-table-body" ).removeChild( raidDIV );
-			}
-			raids.splice( 0, 1 );
-		} catch ( error ) {
-			console.log( "Error removing raid row that was over max results: " + error );
-		}
-	} else {
-		var raidDIV = document.getElementById( data.id );
-		if ( moment().diff( data.time, "seconds" ) > settings.layout.raidTimeout ) {
-			console.log( 'Raid too old(' + moment().diff( data.time, "seconds" ) + ') for selected timeout: ' + settings.layout.raidTimeout );
+//	console.log( "Updating raid row for data: ", data );
+	if ( settings.layout.orientation === "horizontal" ) {
+		if ( raids.length > settings.layout.raidMaxResults ) {
+			console.log( 'Too many raids (' + raids.length + ') for raidMaxResults: ' + settings.layout.raidMaxResults );
 			try {
-				if ( settings.layout.orientation === "horizontal" ) {
-					document.getElementById( "table-body" ).removeChild( raidDIV );
-				} else {
-					document.getElementById( data.room + "-table-body" ).removeChild( raidDIV );
-				}
-				raids.splice( raids.indexOf( data ), 1 );
+				var raidDIV = document.getElementById( raids[ 0 ].id );
+				document.getElementById( "table-body" ).removeChild( raidDIV );
+				raids.splice( 0, 1 );
 			} catch ( error ) {
-				console.log( "Error removing raid row that too old: " + error );
+				console.log( "Error removing raid row that was over max results: " + error );
 			}
 		} else {
-			if ( settings.layout.infoLevel === "normal" || settings.layout.infoLevel === "full" ) {
-				document.getElementById( data.id + '-time' ).innerHTML = moment().diff( data.time, "seconds" ) + ' secs ago';
+			var raidDIV = document.getElementById( data.id );
+			if ( moment().diff( data.time, "seconds" ) > settings.layout.raidTimeout ) {
+				console.log( 'Raid too old(' + moment().diff( data.time, "seconds" ) + ') for selected timeout: ' + settings.layout.raidTimeout );
+				try {
+					document.getElementById( "table-body" ).removeChild( raidDIV );
+					raids.splice( raids.indexOf( data ), 1 );
+				} catch ( error ) {
+					console.log( "Error removing raid row that too old: " + error );
+				}
+			} else {
+				if ( settings.layout.infoLevel === "normal" || settings.layout.infoLevel === "full" ) {
+					document.getElementById( data.id + '-time' ).innerHTML = moment().diff( data.time, "seconds" ) + ' secs ago';
+				}
+			}
+		}
+	} else {
+		if ( raids.filter( raid => raid.room === data.room ).length > settings.layout.raidMaxResults ) {
+			var roomedRaids = raids.filter( raid => raid.room === data.room );
+			console.log( 'Too many raids (' + roomedRaids.length + ') in room ' + data.room + ' for raidMaxResults: ' + settings.layout.raidMaxResults );
+			try {
+				var raidDIV = document.getElementById( roomedRaids[ 0 ].id );
+				document.getElementById( roomedRaids[ 0 ].room + "-table-body" ).removeChild( raidDIV );
+				raids.splice( raids.indexOf( roomedRaids[ 0 ] ), 1 );
+			} catch ( error ) {
+				console.log( "Error removing raid row that was over max results: " + error );
+			}
+		} else {
+			var raidDIV = document.getElementById( data.id );
+			if ( moment().diff( data.time, "seconds" ) > settings.layout.raidTimeout ) {
+				console.log( 'Raid too old(' + moment().diff( data.time, "seconds" ) + ') for selected timeout: ' + settings.layout.raidTimeout );
+				try {
+					document.getElementById( data.room + "-table-body" ).removeChild( raidDIV );
+					raids.splice( raids.indexOf( data ), 1 );
+				} catch ( error ) {
+					console.log( "Error removing raid row that too old: " + error );
+				}
+			} else {
+				if ( settings.layout.infoLevel === "normal" || settings.layout.infoLevel === "full" ) {
+					document.getElementById( data.id + '-time' ).innerHTML = moment().diff( data.time, "seconds" ) + ' secs ago';
+				}
 			}
 		}
 	}
 }
 
 function SetupTable() {
+	console.log( "Setting up table..." );
 	if ( document.getElementById( "raid-table" ) !== null ) {
 		document.getElementById( "raid-table" ).remove();
 	}
@@ -410,6 +429,7 @@ function CreateHorizontalCompactRaidTable() {
 	if ( document.getElementById( "selected-raids-label" ) === null ) {
 		var selectedRaidsDiv = document.createElement( "div" );
 		selectedRaidsDiv.classList.add( "ui", "secondary", "inverted", "blue", "segment" );
+		selectedRaidsDiv.id = "selected-raids-container";
 		selectedRaidsDiv.innerHTML = '<div id="selected-raids-label">Selected Raids:</div><div id="selected-raids" class="ui segment">No raids selected. Please search for a raid in the search bar above.</div>';
 		document.getElementById( "header" ).appendChild( selectedRaidsDiv );
 	}
@@ -432,6 +452,7 @@ function CreateHorizontalNormalRaidTable() {
 	if ( document.getElementById( "selected-raids-label" ) === null ) {
 		var selectedRaidsDiv = document.createElement( "div" );
 		selectedRaidsDiv.classList.add( "ui", "secondary", "inverted", "blue", "segment" );
+		selectedRaidsDiv.id = "selected-raids-container";
 		selectedRaidsDiv.innerHTML = '<div id="selected-raids-label">Selected Raids:</div><div id="selected-raids" class="ui segment">No raids selected. Please search for a raid in the search bar above.</div>';
 		document.getElementById( "header" ).appendChild( selectedRaidsDiv );
 	}
@@ -454,6 +475,7 @@ function CreateHorizontalFullRaidTable() {
 	if ( document.getElementById( "selected-raids-label" ) === null ) {
 		var selectedRaidsDiv = document.createElement( "div" );
 		selectedRaidsDiv.classList.add( "ui", "secondary", "inverted", "blue", "segment" );
+		selectedRaidsDiv.id = "selected-raids-container";
 		selectedRaidsDiv.innerHTML = '<div id="selected-raids-label">Selected Raids:</div><div id="selected-raids" class="ui segment">No raids selected. Please search for a raid in the search bar above.</div>';
 		document.getElementById( "header" ).appendChild( selectedRaidsDiv );
 	}
@@ -527,10 +549,11 @@ function CreateVerticalRaidContainer() {
 	document.getElementById( "settings-modal-save-btn" ).addEventListener( "click", function ( event ) {
 		SaveIndividualSettings();
 	} );
+	$( '.ui.modal' ).modal();
 }
 
 function ConstructRaidURL() {
-	let URLString = "?";
+	let URLString = "/?";
 	selectedRaidsArray.forEach( function ( raid ) {
 		URLString += "raid=" + raid + "&";
 	} );
@@ -552,20 +575,23 @@ function LoadSavedRaids() {
 			AddSelectedRaid( raid );
 		} );
 	} else {
+		console.log( "No URL raids found. Checking for local storage saved raids..." );
 		if ( localStorage.getItem( "selectedRaids" ) ) {
 			console.log( "Found local storage saved raids." );
 			try {
 				var tempSelectedRaids = JSON.parse( localStorage.getItem( "selectedRaids" ) );
+				try {
+					for ( var i = 0; i < tempSelectedRaids.length; i++ ) {
+						AddSelectedRaid( tempSelectedRaids[ i ] );
+					}
+				} catch ( error ) {
+					console.log( "Error adding saved raids: " + error );
+				}
 			} catch ( error ) {
 				console.log( "Error parsing saved raids: " + error );
 			}
-			try {
-				for ( var i = 0; i < tempSelectedRaids.length; i++ ) {
-					AddSelectedRaid( tempSelectedRaids[ i ] );
-				}
-			} catch ( error ) {
-				console.log( "Error adding saved raids: " + error );
-			}
+		} else {
+			console.log( "Could not find local storage saved raids." );
 		}
 	}
 }
@@ -896,6 +922,7 @@ function RemoveSelectedRaid( room ) {
 				room: room
 			} );
 			selectedRaidsArray.splice( selectedRaidsArray.indexOf( room ), 1 );
+			ConstructRaidURL();
 			for ( var i = 0; i < individualSettings.length; i++ ) {
 				if ( room === individualSettings[ i ].room ) {
 					individualSettings.splice( i, 1 );

@@ -1,9 +1,9 @@
 # GBF-Raiders
 ![Site Logo](https://github.com/ypinskiy/GBF-Raiders/raw/master/static/assets/misc/GBFRaidersWeb.png)
 
-A Raid Finder For The Game [Grand Blue Fantasy](http://game.granbluefantasy.jp/)
+A Raid Finder For The Game [Granblue Fantasy](http://game.granbluefantasy.jp/)
 
-Hosted at [GBFRaiders.com](http://www.gbfraiders.com/)
+Hosted at [GBFRaiders.com](https://www.gbfraiders.com/)
 
 A special thanks to [u/Bloodhram](https://www.reddit.com/user/Bloodhram) for creating the icons for the site and extension!
 

@@ -1,7 +1,31 @@
 [
 
-	
 
+	
+{
+	"japanese": "Lv90 テュポーン",
+	"english": "Lvl 90 Typhon",
+	"room": "lvl90typhon",
+	"image": "/assets/raids/Wings_of_Terror_Nightmare.jpg",
+	"category": "Nightmare",
+	"element": "Dark"
+},
+{
+	"japanese": "Lv95 テュポーン",
+	"english": "Lvl 95 Typhon",
+	"room": "lvl95typhon",
+	"image": "/assets/raids/Wings_of_Terror_Nightmare.jpg",
+	"category": "Nightmare",
+	"element": "Dark"
+},	
+{
+	"japanese": "Lv100 テュポーン",
+	"english": "Lvl 100 Typhon",
+	"room": "lvl100typhon",
+	"image": "/assets/raids/Wings_of_Terror_Nightmare.jpg",
+	"category": "Nightmare",
+	"element": "Dark"
+},
 {
 	"japanese": "Lv100 プロトバハムート",
 	"english": "Lvl 100 Proto Bahamut",
